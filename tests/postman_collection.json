@@ -1,0 +1,152 @@
+{
+  "info": {
+    "_postman_id": "cartsync-api-tests",
+    "name": "CartSync API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"name\": \"Test User\"\n}\n" },
+        "url": { "raw": "{{baseUrl}}/auth/register" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200 or 201', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "var body = pm.response.json();",
+              "if (body.token) pm.environment.set('jwt', body.token);",
+              "if (body.user && body.user.id) pm.environment.set('userId', body.user.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}\n" },
+        "url": { "raw": "{{baseUrl}}/auth/login" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+              "var body = pm.response.json();",
+              "if (body.token) pm.environment.set('jwt', body.token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Me",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/auth/me" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200', function () { pm.response.to.have.status(200); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create List",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test List\"\n}\n" },
+        "url": { "raw": "{{baseUrl}}/lists" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 201 or 200', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "var body = pm.response.json();",
+              "if (body.id) pm.environment.set('listId', body.id);",
+              "if (body.id == undefined && body.list && body.list.id) pm.environment.set('listId', body.list.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get List",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/lists/{{listId}}" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200', function () { pm.response.to.have.status(200); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Add Item",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Milk\",\n  \"quantity\": 1,\n  \"unit\": \"pc\"\n}\n" },
+        "url": { "raw": "{{baseUrl}}/lists/{{listId}}/items" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 201 or 200', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "var body = pm.response.json();",
+              "if (body.id) pm.environment.set('itemId', body.id);",
+              "if (body.item && body.item.id) pm.environment.set('itemId', body.item.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}
