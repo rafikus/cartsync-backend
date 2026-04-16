@@ -61,15 +61,48 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	listID := uuid.NewString()
+	inviteCode := uuid.NewString()[:6]
+	_, err = db.Pool.Exec(context.Background(),
+		`INSERT INTO lists (id, name, invite_code) VALUES ($1, $2, $3)`,
+		listID, req.Name+"'s List", inviteCode,
+	)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not create default list")
+		return
+	}
+
+	_, err = db.Pool.Exec(context.Background(),
+		`INSERT INTO list_members (list_id, user_id) VALUES ($1, $2)`,
+		listID, userID,
+	)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not add user to default list")
+		return
+	}
+
 	token, err := token.IssueToken(userID)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "could not issue token")
 		return
 	}
 
+	// Also return the user's list IDs so the client knows which list to load
+	rows, _ := db.Pool.Query(context.Background(),
+		`SELECT list_id FROM list_members WHERE user_id = $1 ORDER BY joined_at ASC`, userID,
+	)
+	defer rows.Close()
+	var listIDs []string
+	for rows.Next() {
+		var id string
+		rows.Scan(&id)
+		listIDs = append(listIDs, id)
+	}
+
 	writeJSON(w, http.StatusCreated, map[string]any{
-		"token": token,
-		"user":  map[string]string{"id": userID, "email": req.Email, "name": req.Name},
+		"token":   token,
+		"user":    map[string]string{"id": userID, "email": req.Email, "name": req.Name},
+		"listIds": listIDs,
 	})
 }
 
@@ -107,9 +140,22 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Also return the user's list IDs so the client knows which list to load
+	rows, _ := db.Pool.Query(context.Background(),
+		`SELECT list_id FROM list_members WHERE user_id = $1 ORDER BY joined_at ASC`, userID,
+	)
+	defer rows.Close()
+	var listIDs []string
+	for rows.Next() {
+		var id string
+		rows.Scan(&id)
+		listIDs = append(listIDs, id)
+	}
+
 	writeJSON(w, http.StatusOK, map[string]any{
-		"token": token,
-		"user":  map[string]string{"id": user.ID, "email": user.Email, "name": user.Name},
+		"token":   token,
+		"user":    map[string]string{"id": user.ID, "email": user.Email, "name": user.Name},
+		"listIds": listIDs,
 	})
 }
 
