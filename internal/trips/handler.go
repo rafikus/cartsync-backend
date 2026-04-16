@@ -77,7 +77,7 @@ func List(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Pool.Query(context.Background(),
 		`SELECT id FROM trips WHERE list_id = $1 ORDER BY completed_at DESC LIMIT 50`, listID)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "db error")
+		writeError(w, http.StatusInternalServerError, "error fetching trips")
 		return
 	}
 	defer rows.Close()
@@ -113,7 +113,7 @@ func Complete(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Pool.Query(context.Background(),
 		`SELECT id, name, quantity, unit FROM items WHERE list_id = $1 AND checked = TRUE`, listID)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "db error")
+		writeError(w, http.StatusInternalServerError, "error fetching items")
 		return
 	}
 	defer rows.Close()
@@ -136,7 +136,7 @@ func Complete(w http.ResponseWriter, r *http.Request) {
 
 	tx, err := db.Pool.Begin(context.Background())
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "db error")
+		writeError(w, http.StatusInternalServerError, "could not start transaction")
 		return
 	}
 	defer tx.Rollback(context.Background())
