@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rafikus/cartsync/internal/db"
-	"github.com/rafikus/cartsync/internal/lists"
 	"github.com/rafikus/cartsync/internal/middleware"
 	"github.com/rafikus/cartsync/internal/token"
 	"golang.org/x/crypto/bcrypt"
@@ -62,12 +61,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = lists.CreateList(userID, req.Name+"'s List")
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "could not create default list")
-		return
-	}
-
 	token, err := token.IssueToken(userID)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "could not issue token")
@@ -78,6 +71,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	rows, _ := db.Pool.Query(context.Background(),
 		`SELECT list_id FROM list_members WHERE user_id = $1 ORDER BY joined_at ASC`, userID,
 	)
+
 	defer rows.Close()
 	var listIDs []string
 	for rows.Next() {
@@ -98,7 +92,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 type loginReq struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-}
+} 
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	var req loginReq
@@ -131,6 +125,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	rows, _ := db.Pool.Query(context.Background(),
 		`SELECT list_id FROM list_members WHERE user_id = $1 ORDER BY joined_at ASC`, user.ID,
 	)
+
 	defer rows.Close()
 	var listIDs []string
 	for rows.Next() {
