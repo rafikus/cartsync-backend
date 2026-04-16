@@ -25,6 +25,24 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 	writeJSON(w, status, map[string]string{"message": msg})
 }
 
+func CreateList(userID string, name string) (string, error) {
+	listID := uuid.NewString()
+	code := generateInviteCode()
+
+	tx, err := db.Pool.Begin(context.Background())
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback(context.Background())
+
+	tx.Exec(context.Background(),
+		`INSERT INTO lists (id, name, invite_code) VALUES ($1, $2, $3)`, listID, name, code)
+	tx.Exec(context.Background(),
+		`INSERT INTO list_members (list_id, user_id) VALUES ($1, $2)`, listID, userID)
+	tx.Commit(context.Background())
+	return listID, nil
+}
+
 // ── invite code generator ─────────────────────────────────────────────────────
 
 const codeChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -109,21 +127,11 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listID := uuid.NewString()
-	code := generateInviteCode()
-
-	tx, err := db.Pool.Begin(context.Background())
+	listID, err := CreateList(userID, req.Name)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "db error")
+		writeError(w, http.StatusInternalServerError, "could not create list")
 		return
 	}
-	defer tx.Rollback(context.Background())
-
-	tx.Exec(context.Background(),
-		`INSERT INTO lists (id, name, invite_code) VALUES ($1, $2, $3)`, listID, req.Name, code)
-	tx.Exec(context.Background(),
-		`INSERT INTO list_members (list_id, user_id) VALUES ($1, $2)`, listID, userID)
-	tx.Commit(context.Background())
 
 	result, err := getList(context.Background(), listID)
 	if err != nil {

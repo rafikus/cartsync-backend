@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rafikus/cartsync/internal/db"
+	"github.com/rafikus/cartsync/internal/lists"
 	"github.com/rafikus/cartsync/internal/middleware"
 	"github.com/rafikus/cartsync/internal/token"
 	"golang.org/x/crypto/bcrypt"
@@ -61,23 +62,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listID := uuid.NewString()
-	inviteCode := uuid.NewString()[:6]
-	_, err = db.Pool.Exec(context.Background(),
-		`INSERT INTO lists (id, name, invite_code) VALUES ($1, $2, $3)`,
-		listID, req.Name+"'s List", inviteCode,
-	)
+	_, err = lists.CreateList(userID, req.Name+"'s List")
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "could not create default list")
-		return
-	}
-
-	_, err = db.Pool.Exec(context.Background(),
-		`INSERT INTO list_members (list_id, user_id) VALUES ($1, $2)`,
-		listID, userID,
-	)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "could not add user to default list")
 		return
 	}
 
