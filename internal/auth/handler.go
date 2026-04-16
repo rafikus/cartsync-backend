@@ -142,7 +142,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// Also return the user's list IDs so the client knows which list to load
 	rows, _ := db.Pool.Query(context.Background(),
-		`SELECT list_id FROM list_members WHERE user_id = $1 ORDER BY joined_at ASC`, userID,
+		`SELECT list_id FROM list_members WHERE user_id = $1 ORDER BY joined_at ASC`, user.ID,
 	)
 	defer rows.Close()
 	var listIDs []string
