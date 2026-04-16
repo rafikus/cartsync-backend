@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/yourname/cartsync/internal/db"
-	"github.com/yourname/cartsync/internal/middleware"
-	"github.com/yourname/cartsync/internal/ws"
+	"github.com/rafikus/cartsync/internal/db"
+	"github.com/rafikus/cartsync/internal/middleware"
+	"github.com/rafikus/cartsync/internal/ws"
 )
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
@@ -99,7 +99,9 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req struct{ Name string `json:"name"` }
+	var req struct {
+		Name string `json:"name"`
+	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
 		writeError(w, http.StatusBadRequest, "name is required")
 		return

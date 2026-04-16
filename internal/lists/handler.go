@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/yourname/cartsync/internal/db"
-	"github.com/yourname/cartsync/internal/middleware"
-	"github.com/yourname/cartsync/internal/ws"
+	"github.com/rafikus/cartsync/internal/db"
+	"github.com/rafikus/cartsync/internal/middleware"
+	"github.com/rafikus/cartsync/internal/ws"
 )
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
@@ -101,7 +101,9 @@ func getList(ctx context.Context, listID string) (map[string]any, error) {
 // POST /lists
 func Create(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.UserIDFromCtx(r.Context())
-	var req struct{ Name string `json:"name"` }
+	var req struct {
+		Name string `json:"name"`
+	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
 		writeError(w, http.StatusBadRequest, "name is required")
 		return
@@ -134,7 +136,9 @@ func Create(w http.ResponseWriter, r *http.Request) {
 // POST /lists/join
 func Join(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.UserIDFromCtx(r.Context())
-	var req struct{ InviteCode string `json:"inviteCode"` }
+	var req struct {
+		InviteCode string `json:"inviteCode"`
+	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.InviteCode == "" {
 		writeError(w, http.StatusBadRequest, "inviteCode is required")
 		return
@@ -185,7 +189,9 @@ func Rename(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userID := middleware.UserIDFromCtx(r.Context())
-	var req struct{ Name string `json:"name"` }
+	var req struct {
+		Name string `json:"name"`
+	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
 		writeError(w, http.StatusBadRequest, "name is required")
 		return

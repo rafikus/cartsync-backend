@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/yourname/cartsync/internal/db"
-	"github.com/yourname/cartsync/internal/middleware"
-	"github.com/yourname/cartsync/internal/ws"
+	"github.com/rafikus/cartsync/internal/db"
+	"github.com/rafikus/cartsync/internal/middleware"
+	"github.com/rafikus/cartsync/internal/ws"
 )
 
 // POST /lists/{listId}/items

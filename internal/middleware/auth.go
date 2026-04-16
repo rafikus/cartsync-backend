@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	tok "github.com/yourname/cartsync/internal/token"
+	tok "github.com/rafikus/cartsync/internal/token"
 )
 
 type contextKey string

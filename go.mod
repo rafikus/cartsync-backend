@@ -1,4 +1,4 @@
-module github.com/yourname/cartsync
+module github.com/rafikus/cartsync
 
 go 1.22
 

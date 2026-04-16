@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yourname/cartsync/internal/db"
-	"github.com/yourname/cartsync/internal/middleware"
+	"github.com/rafikus/cartsync/internal/db"
+	"github.com/rafikus/cartsync/internal/middleware"
 )
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

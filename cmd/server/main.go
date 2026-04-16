@@ -11,14 +11,14 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/yourname/cartsync/internal/auth"
-	"github.com/yourname/cartsync/internal/db"
-	"github.com/yourname/cartsync/internal/lists"
-	"github.com/yourname/cartsync/internal/middleware"
-	"github.com/yourname/cartsync/internal/stores"
-	"github.com/yourname/cartsync/internal/suggestions"
-	"github.com/yourname/cartsync/internal/trips"
-	"github.com/yourname/cartsync/internal/ws"
+	"github.com/rafikus/cartsync/internal/auth"
+	"github.com/rafikus/cartsync/internal/db"
+	"github.com/rafikus/cartsync/internal/lists"
+	"github.com/rafikus/cartsync/internal/middleware"
+	"github.com/rafikus/cartsync/internal/stores"
+	"github.com/rafikus/cartsync/internal/suggestions"
+	"github.com/rafikus/cartsync/internal/trips"
+	"github.com/rafikus/cartsync/internal/ws"
 )
 
 func main() {

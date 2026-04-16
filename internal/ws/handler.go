@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/gorilla/websocket"
-	"github.com/yourname/cartsync/internal/db"
-	"github.com/yourname/cartsync/internal/middleware"
+	"github.com/rafikus/cartsync/internal/db"
+	"github.com/rafikus/cartsync/internal/middleware"
 )
 
 var upgrader = websocket.Upgrader{
