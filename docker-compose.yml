@@ -8,15 +8,10 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "3000:3000"
+      - "6300:3000"
     environment:
       DB_HOST: host-gateway
       DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: cartsync
-      DB_SSLMODE: disable
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       PORT: 3000
       UPLOAD_DIR: /app/uploads
     volumes:
