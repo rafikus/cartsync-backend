@@ -115,10 +115,10 @@ func main() {
 	})
 
 	// WebSocket — auth middleware reads token from query string
-	mux.Handle("/ws/", middleware.Authenticate(http.HandlerFunc(ws.Handler)))
+	mux.Handle("/cartsync/ws/", middleware.Authenticate(http.HandlerFunc(ws.Handler)))
 
 	// Apply auth + CORS middleware to protected routes
-	mux.Handle("/", middleware.CORS(middleware.Authenticate(protected)))
+	mux.Handle("/cartsync/", middleware.CORS(middleware.Authenticate(protected)))
 
 	port := os.Getenv("PORT")
 	if port == "" {
