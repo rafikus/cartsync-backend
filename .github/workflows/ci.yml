@@ -40,5 +40,5 @@ jobs:
             source ~/.profile
             cd /home/github-actions/cartsync-backend
             git pull origin master
-            docker compose down && docker compose up -d --build -f docker-compose.yml
+            docker compose -f docker-compose.yml down && docker compose -f docker-compose.yml up -d --build
           EOF
