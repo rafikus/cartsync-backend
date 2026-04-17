@@ -11,29 +11,11 @@ services:
       - "6300:3000"
     environment:
       DB_HOST: host-gateway
-      DB_PORT: 5432
-      PORT: 3000
       UPLOAD_DIR: /app/uploads
     volumes:
       - uploads:/app/uploads
     extra_hosts:
       - "host-gateway:host-gateway"
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-    ports:
-      - "5050:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-
 volumes:
-  pgdata:
   uploads:
-  pgadmin_data:
