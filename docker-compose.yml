@@ -27,7 +27,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DB_HOST: db
+      DB_HOST: host-gateway
       DB_PORT: 5432
       DB_USER: postgres
       DB_PASSWORD: postgres
@@ -38,6 +38,8 @@ services:
       UPLOAD_DIR: /app/uploads
     volumes:
       - uploads:/app/uploads
+    extra_hosts:
+      - "host-gateway:host-gateway"
 
   pgadmin:
     image: dpage/pgadmin4:latest
