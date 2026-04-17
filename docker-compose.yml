@@ -1,6 +1,21 @@
 version: "3.9"
 
 services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cartsync
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   server:
     build: .
     restart: unless-stopped
@@ -10,12 +25,18 @@ services:
     ports:
       - "6300:3000"
     environment:
-      DB_HOST: host-gateway
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: cartsync
+      DB_SSLMODE: disable
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      PORT: 3000
       UPLOAD_DIR: /app/uploads
     volumes:
       - uploads:/app/uploads
-    extra_hosts:
-      - "host-gateway:host-gateway"
 
 volumes:
+  pgdata:
   uploads:
