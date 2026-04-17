@@ -12,19 +12,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [23.x]
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run build
-        run: npm run build
 
   deploy:
     runs-on: ubuntu-latest
