@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS list_members (
     list_id   TEXT        NOT NULL REFERENCES lists(id) ON DELETE CASCADE,
     user_id   TEXT        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    is_admin  BOOLEAN     NOT NULL DEFAULT FALSE,
     PRIMARY KEY (list_id, user_id)
 );
 

@@ -38,7 +38,7 @@ func CreateList(userID string, name string) (string, error) {
 	tx.Exec(context.Background(),
 		`INSERT INTO lists (id, name, invite_code) VALUES ($1, $2, $3)`, listID, name, code)
 	tx.Exec(context.Background(),
-		`INSERT INTO list_members (list_id, user_id) VALUES ($1, $2)`, listID, userID)
+		`INSERT INTO list_members (list_id, user_id, is_admin) VALUES ($1, $2, $3)`, listID, userID, true)
 	tx.Commit(context.Background())
 	return listID, nil
 }
