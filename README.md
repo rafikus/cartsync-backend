@@ -1,5 +1,7 @@
 # CartSync — Backend
 
+![Health Status](https://kusy.net/cartsync/health)
+
 Go + PostgreSQL REST API with WebSocket sync for the CartSync shopping list app.
 
 ## Stack

@@ -13,6 +13,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/rafikus/cartsync/internal/auth"
 	"github.com/rafikus/cartsync/internal/db"
+	"github.com/rafikus/cartsync/internal/health"
 	"github.com/rafikus/cartsync/internal/lists"
 	"github.com/rafikus/cartsync/internal/middleware"
 	"github.com/rafikus/cartsync/internal/stores"
@@ -52,6 +53,7 @@ func main() {
 	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir(uploadDir))))
 
 	// ── Public routes ─────────────────────────────────────────────────────────
+	mux.HandleFunc("/health", method(http.MethodGet, health.Check))
 	mux.HandleFunc("/auth/register", method(http.MethodPost, auth.Register))
 	mux.HandleFunc("/auth/login", method(http.MethodPost, auth.Login))
 
