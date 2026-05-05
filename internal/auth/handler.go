@@ -4,11 +4,15 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/rafikus/cartsync/internal/db"
+	"github.com/rafikus/cartsync/internal/email"
 	"github.com/rafikus/cartsync/internal/middleware"
 	"github.com/rafikus/cartsync/internal/token"
 	"golang.org/x/crypto/bcrypt"
@@ -172,5 +176,149 @@ func Me(w http.ResponseWriter, r *http.Request) {
 		"email":   user.Email,
 		"name":    user.Name,
 		"listIds": listIDs,
+	})
+}
+
+// ── Password Reset ────────────────────────────────────────────────────────────
+
+// generateResetToken generates a 6-digit numeric code
+func generateResetToken() (string, error) {
+	b := make([]byte, 3) // 3 bytes = 6 hex digits
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%06d", int(b[0])<<16|int(b[1])<<8|int(b[2])%1000000), nil
+}
+
+type requestPasswordResetReq struct {
+	Email string `json:"email"`
+}
+
+func RequestPasswordReset(w http.ResponseWriter, r *http.Request) {
+	var req requestPasswordResetReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid body")
+		return
+	}
+	if req.Email == "" {
+		writeError(w, http.StatusBadRequest, "email is required")
+		return
+	}
+
+	// Check if user exists
+	var userID string
+	err := db.Pool.QueryRow(context.Background(),
+		`SELECT id FROM users WHERE email = $1`, req.Email,
+	).Scan(&userID)
+	
+	// Always return success even if email doesn't exist (security best practice)
+	if err != nil {
+		writeJSON(w, http.StatusOK, map[string]string{
+			"message": "If the email exists, a reset code has been sent",
+		})
+		return
+	}
+
+	// Generate reset token (6-digit code)
+	resetToken, err := generateResetToken()
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not generate reset token")
+		return
+	}
+
+	// Store token (expires in 1 hour)
+	expiresAt := time.Now().Add(1 * time.Hour)
+	_, err = db.Pool.Exec(context.Background(),
+		`INSERT INTO password_reset_tokens (token, user_id, expires_at) VALUES ($1, $2, $3)`,
+		resetToken, userID, expiresAt,
+	)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not save reset token")
+		return
+	}
+
+	// Send email with reset token
+	if err := email.SendPasswordReset(req.Email, resetToken); err != nil {
+		writeError(w, http.StatusInternalServerError, "could not send reset email")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{
+		"message": "If the email exists, a reset code has been sent",
+	})
+}
+
+type resetPasswordReq struct {
+	Token       string `json:"token"`
+	NewPassword string `json:"newPassword"`
+}
+
+func ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var req resetPasswordReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid body")
+		return
+	}
+	if req.Token == "" || req.NewPassword == "" {
+		writeError(w, http.StatusBadRequest, "token and newPassword are required")
+		return
+	}
+
+	// Validate token
+	var userID string
+	var expiresAt time.Time
+	var usedAt *time.Time
+	err := db.Pool.QueryRow(context.Background(),
+		`SELECT user_id, expires_at, used_at FROM password_reset_tokens WHERE token = $1`,
+		req.Token,
+	).Scan(&userID, &expiresAt, &usedAt)
+	
+	if err != nil {
+		writeError(w, http.StatusUnauthorized, "invalid or expired reset code")
+		return
+	}
+
+	// Check if token has been used
+	if usedAt != nil {
+		writeError(w, http.StatusUnauthorized, "reset code has already been used")
+		return
+	}
+
+	// Check if token has expired
+	if time.Now().After(expiresAt) {
+		writeError(w, http.StatusUnauthorized, "reset code has expired")
+		return
+	}
+
+	// Hash new password
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not hash password")
+		return
+	}
+
+	// Update password
+	_, err = db.Pool.Exec(context.Background(),
+		`UPDATE users SET password_hash = $1 WHERE id = $2`,
+		string(hash), userID,
+	)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not update password")
+		return
+	}
+
+	// Mark token as used
+	now := time.Now()
+	_, err = db.Pool.Exec(context.Background(),
+		`UPDATE password_reset_tokens SET used_at = $1 WHERE token = $2`,
+		now, req.Token,
+	)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not mark token as used")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{
+		"message": "Password reset successfully",
 	})
 }

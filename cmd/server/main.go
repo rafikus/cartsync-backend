@@ -56,6 +56,8 @@ func main() {
 	mux.HandleFunc("/health", method(http.MethodGet, health.Check))
 	mux.HandleFunc("/auth/register", method(http.MethodPost, auth.Register))
 	mux.HandleFunc("/auth/login", method(http.MethodPost, auth.Login))
+	mux.HandleFunc("/auth/password-reset/request", method(http.MethodPost, auth.RequestPasswordReset))
+	mux.HandleFunc("/auth/password-reset/confirm", method(http.MethodPost, auth.ResetPassword))
 
 	// ── Protected routes ──────────────────────────────────────────────────────
 	protected := http.NewServeMux()
@@ -164,10 +166,21 @@ func matchSegment(path, segment string) bool {
 // ── Migration runner ──────────────────────────────────────────────────────────
 
 func runMigrations(ctx context.Context) error {
-	sql, err := os.ReadFile("migrations/001_init.sql")
-	if err != nil {
-		return err
+	migrations := []string{
+		"migrations/001_init.sql",
+		"migrations/002_password_reset.sql",
 	}
-	_, err = db.Pool.Exec(ctx, string(sql))
-	return err
+	
+	for _, migrationFile := range migrations {
+		sql, err := os.ReadFile(migrationFile)
+		if err != nil {
+			return err
+		}
+		if _, err := db.Pool.Exec(ctx, string(sql)); err != nil {
+			return err
+		}
+		log.Printf("migrations: applied %s", migrationFile)
+	}
+	
+	return nil
 }

@@ -60,6 +60,8 @@ All protected endpoints require `Authorization: Bearer <token>`.
 | POST | `/auth/register` | `{email, password, name}` | Create account |
 | POST | `/auth/login` | `{email, password}` | Sign in, returns token |
 | GET  | `/auth/me` | — | Current user + their `listIds` |
+| POST | `/auth/password-reset/request` | `{email}` | Request password reset (sends 6-digit code) |
+| POST | `/auth/password-reset/confirm` | `{token, newPassword}` | Reset password with code |
 
 ### Lists
 
